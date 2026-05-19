@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SVG Pattern → PNG Generator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --border: #222230;
+    --accent: #00ffcc;
+    --accent2: #ff3cac;
+    --text: #e8e8f0;
+    --muted: #5a5a7a;
+    --input-bg: #0e0e1a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  header {
+    width: 100%;
+    padding: 28px 40px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+  }
+
+  header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  header span {
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .main {
+    width: 100%;
+    max-width: 1200px;
+    padding: 32px 24px;
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    gap: 24px;
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .panel-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+  }
+
+  label {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  textarea {
+    width: 100%;
+    height: 180px;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    padding: 12px;
+    resize: vertical;
+    outline: none;
+    line-height: 1.6;
+    transition: border-color 0.2s;
+  }
+  textarea:focus { border-color: var(--accent); }
+
+  .control-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .control-group { display: flex; flex-direction: column; }
+
+  input[type="number"], input[type="color"], select {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    padding: 9px 12px;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.2s;
+  }
+  input[type="number"]:focus, select:focus { border-color: var(--accent); }
+
+  input[type="color"] {
+    padding: 4px 8px;
+    height: 38px;
+    cursor: pointer;
+  }
+
+  .color-row {
+    display: grid;
+    grid-template-columns: 1fr 80px;
+    gap: 10px;
+    align-items: end;
+  }
+
+  .slider-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .slider-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .slider-val {
+    font-size: 0.75rem;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent);
+    height: 4px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .btn {
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: none;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+    width: 100%;
+  }
+  .btn-primary:hover { background: #00ffe0; transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-download {
+    background: linear-gradient(135deg, var(--accent2), #7928ca);
+    color: #fff;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    padding: 14px;
+    border-radius: 10px;
+  }
+  .btn-download:hover { opacity: 0.88; transform: translateY(-1px); }
+  .btn-download:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+  .preview-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .canvas-wrap {
+    flex: 1;
+    background: #050508;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 380px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Checkerboard to show transparency */
+  .canvas-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(45deg, #1a1a2e 25%, transparent 25%),
+      linear-gradient(-45deg, #1a1a2e 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #1a1a2e 75%),
+      linear-gradient(-45deg, transparent 75%, #1a1a2e 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    opacity: 0.4;
+    border-radius: 12px;
+  }
+
+  canvas {
+    position: relative;
+    z-index: 1;
+    max-width: 100%;
+    max-height: 480px;
+    border-radius: 8px;
+    image-rendering: pixelated;
+  }
+
+  .placeholder-text {
+    position: relative;
+    z-index: 1;
+    color: var(--muted);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-align: center;
+  }
+
+  .info-bar {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .info-chip {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.68rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  .info-chip span { color: var(--accent); font-weight: 700; }
+
+  .error-msg {
+    background: rgba(255, 60, 172, 0.08);
+    border: 1px solid rgba(255, 60, 172, 0.3);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.72rem;
+    color: var(--accent2);
+    display: none;
+  }
+
+  .section-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0;
+  }
+
+  @media (max-width: 900px) {
+    .main { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>SVG Pattern → PNG</h1>
+  <span>5K Ultra-HD Transparent Export</span>
+</header>
+
+<div class="main">
+  <!-- Left Panel: Controls -->
+  <div class="panel">
+    <div class="panel-title">Pattern Code</div>
+
+    <div>
+      <label>SVG Pattern Code</label>
+      <textarea id="svgInput" spellcheck="false" placeholder="Paste your SVG pattern code here...
+e.g. <pattern ...> or full <svg ...>"></textarea>
+    </div>
+
+    <hr class="section-divider">
+    <div class="panel-title">Line Settings</div>
+
+    <div class="control-row">
+      <div class="control-group">
+        <label>Line Color</label>
+        <input type="color" id="lineColor" value="#000000">
+      </div>
+      <div class="control-group">
+        <label>Line Width (px)</label>
+        <input type="number" id="lineWidth" value="1" min="0.1" max="20" step="0.1">
+      </div>
+    </div>
+
+    <div class="slider-group">
+      <div class="slider-label-row">
+        <label style="margin:0">Line Spacing (tile size)</label>
+        <span class="slider-val" id="spacingVal">20px</span>
+      </div>
+      <input type="range" id="spacing" min="4" max="120" value="20">
+    </div>
+
+    <div class="slider-group">
+      <div class="slider-label-row">
+        <label style="margin:0">Zoom / Scale</label>
+        <span class="slider-val" id="zoomVal">1×</span>
+      </div>
+      <input type="range" id="zoom" min="1" max="10" value="1" step="0.5">
+    </div>
+
+    <hr class="section-divider">
+    <div class="panel-title">Output Quality</div>
+
+    <div class="control-row">
+      <div class="control-group">
+        <label>Canvas Width (px)</label>
+        <input type="number" id="outWidth" value="2048" min="64" max="5120" step="64">
+      </div>
+      <div class="control-group">
+        <label>Canvas Height (px)</label>
+        <input type="number" id="outHeight" value="2048" min="64" max="5120" step="64">
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label>Quality Preset</label>
+      <select id="qualityPreset">
+        <option value="">Custom</option>
+        <option value="1024,1024">HD — 1024×1024</option>
+        <option value="2048,2048" selected>2K — 2048×2048</option>
+        <option value="3840,2160">4K — 3840×2160</option>
+        <option value="5120,2880">5K Ultra-HD — 5120×2880</option>
+        <option value="5120,5120">5K Square — 5120×5120</option>
+      </select>
+    </div>
+
+    <hr class="section-divider">
+
+    <div id="errorMsg" class="error-msg"></div>
+
+    <button class="btn btn-primary" onclick="generatePreview()">▶ Generate Preview</button>
+  </div>
+
+  <!-- Right Panel: Preview + Download -->
+  <div class="preview-panel">
+    <div class="panel">
+      <div class="panel-title">Preview (Transparent Background)</div>
+      <div class="canvas-wrap" id="canvasWrap">
+        <div class="placeholder-text" id="placeholder">
+          Paste SVG code and click<br>Generate Preview
+        </div>
+        <canvas id="previewCanvas" style="display:none"></canvas>
+      </div>
+
+      <div class="info-bar" id="infoBar" style="display:none">
+        <div class="info-chip">Size: <span id="infoSize">—</span></div>
+        <div class="info-chip">Tile: <span id="infoTile">—</span></div>
+        <div class="info-chip">Scale: <span id="infoScale">—</span></div>
+        <div class="info-chip">Format: <span>PNG (transparent)</span></div>
+      </div>
+
+      <button class="btn btn-download" id="downloadBtn" onclick="downloadPNG()" disabled>
+        ↓ Download Transparent PNG
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// --- UI bindings ---
+const spacingSlider = document.getElementById('spacing');
+const spacingVal = document.getElementById('spacingVal');
+const zoomSlider = document.getElementById('zoom');
+const zoomVal = document.getElementById('zoomVal');
+const qualityPreset = document.getElementById('qualityPreset');
+const outWidth = document.getElementById('outWidth');
+const outHeight = document.getElementById('outHeight');
+
+spacingSlider.oninput = () => { spacingVal.textContent = spacingSlider.value + 'px'; };
+zoomSlider.oninput = () => { zoomVal.textContent = parseFloat(zoomSlider.value).toFixed(1) + '×'; };
+
+qualityPreset.onchange = () => {
+  if (qualityPreset.value) {
+    const [w, h] = qualityPreset.value.split(',');
+    outWidth.value = w;
+    outHeight.value = h;
+  }
+};
+
+// --- Core logic ---
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg;
+  el.style.display = msg ? 'block' : 'none';
+}
+
+function buildFullSVG(userCode, lineColor, lineWidth, tileSize) {
+  const color = lineColor;
+  const lw = parseFloat(lineWidth) || 1;
+  const ts = parseFloat(tileSize) || 20;
+
+  let svgCode = userCode.trim();
+
+  // If user pasted just a <pattern> block (no wrapping svg)
+  if (!svgCode.toLowerCase().startsWith('<svg')) {
+    // Wrap it in an SVG with patternUnits userSpaceOnUse
+    // Replace any patternUnits width/height with our tile size
+    // Replace color references
+    svgCode = svgCode
+      .replace(/width="[^"]*"/, `width="${ts}"`)
+      .replace(/height="[^"]*"/, `height="${ts}"`)
+      .replace(/stroke="[^"]*"/g, `stroke="${color}"`)
+      .replace(/stroke-width="[^"]*"/g, `stroke-width="${lw}"`)
+      .replace(/var\(--pattern-channel-1,\s*currentcolor\)/gi, color)
+      .replace(/currentcolor/gi, color);
+
+    // Extract id from pattern
+    const idMatch = svgCode.match(/id="([^"]*)"/);
+    const patId = idMatch ? idMatch[1] : 'pat';
+
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${ts}" height="${ts}">
+  <defs>${svgCode}</defs>
+  <rect width="100%" height="100%" fill="url(#${patId})"/>
+</svg>`;
+  }
+
+  // Full SVG — patch color references
+  svgCode = svgCode
+    .replace(/stroke="[^"]*"/g, `stroke="${color}"`)
+    .replace(/stroke-width="[^"]*"/g, `stroke-width="${lw}"`)
+    .replace(/var\(--pattern-channel-1,\s*currentcolor\)/gi, color)
+    .replace(/currentcolor/gi, color);
+
+  return svgCode;
+}
+
+async function renderToCanvas(canvasEl, canvasW, canvasH) {
+  const userCode = document.getElementById('svgInput').value;
+  if (!userCode.trim()) { showError('Please paste SVG pattern code.'); return false; }
+
+  const lineColor = document.getElementById('lineColor').value;
+  const lineWidth = document.getElementById('lineWidth').value;
+  const tileSize = parseInt(spacingSlider.value);
+  const scale = parseFloat(zoomSlider.value);
+
+  const scaledTile = tileSize * scale;
+  const fullSVG = buildFullSVG(userCode, lineColor, lineWidth, scaledTile);
+
+  const blob = new Blob([fullSVG], { type: 'image/svg+xml' });
+  const url = URL.createObjectURL(blob);
+
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      canvasEl.width = canvasW;
+      canvasEl.height = canvasH;
+      const ctx = canvasEl.getContext('2d');
+      ctx.clearRect(0, 0, canvasW, canvasH);
+
+      // Tile the SVG pattern across the canvas
+      const pat = ctx.createPattern(img, 'repeat');
+      ctx.fillStyle = pat;
+      ctx.fillRect(0, 0, canvasW, canvasH);
+
+      URL.revokeObjectURL(url);
+      resolve(true);
+    };
+    img.onerror = () => {
+      showError('Failed to render SVG. Check your code for errors.');
+      URL.revokeObjectURL(url);
+      resolve(false);
+    };
+    img.src = url;
+  });
+}
+
+async function generatePreview() {
+  showError('');
+  const canvas = document.getElementById('previewCanvas');
+  const placeholder = document.getElementById('placeholder');
+
+  // Preview at smaller size for speed
+  const previewW = 600;
+  const previewH = 600;
+
+  const ok = await renderToCanvas(canvas, previewW, previewH);
+  if (!ok) return;
+
+  canvas.style.display = 'block';
+  placeholder.style.display = 'none';
+
+  // Update info bar
+  const tileSize = parseInt(spacingSlider.value);
+  const scale = parseFloat(zoomSlider.value);
+  document.getElementById('infoSize').textContent = `${outWidth.value}×${outHeight.value}`;
+  document.getElementById('infoTile').textContent = `${tileSize}px`;
+  document.getElementById('infoScale').textContent = `${scale}×`;
+  document.getElementById('infoBar').style.display = 'flex';
+  document.getElementById('downloadBtn').disabled = false;
+}
+
+async function downloadPNG() {
+  showError('');
+  const btn = document.getElementById('downloadBtn');
+  btn.textContent = '⏳ Rendering 5K PNG...';
+  btn.disabled = true;
+
+  const w = parseInt(outWidth.value) || 2048;
+  const h = parseInt(outHeight.value) || 2048;
+
+  const offscreen = document.createElement('canvas');
+  const ok = await renderToCanvas(offscreen, w, h);
+
+  if (!ok) {
+    btn.textContent = '↓ Download Transparent PNG';
+    btn.disabled = false;
+    return;
+  }
+
+  offscreen.toBlob((blob) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pattern_${w}x${h}_transparent.png`;
+    a.click();
+    URL.revokeObjectURL(url);
+    btn.innerHTML = '↓ Download Transparent PNG';
+    btn.disabled = false;
+  }, 'image/png');
+}
+
+// Load example on start
+window.onload = () => {
+  document.getElementById('svgInput').value =
+`<pattern id="pattern-1" patternUnits="userSpaceOnUse" width="20" height="20">
+  <path d="M-1,1 l2,-2 M0,20 l20,-20 M19,21 l2,-2" stroke="currentcolor" stroke-width="1" style="stroke: var(--pattern-channel-1, currentcolor)" />
+</pattern>`;
+};
+</script>
+</body>
+</html>
